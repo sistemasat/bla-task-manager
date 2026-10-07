@@ -9,6 +9,7 @@ export interface TaskFormProps {
 }
 export function TaskForm({ task, onSave, onClose }: TaskFormProps) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const titleInput = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
   const [dueDate, setDueDate] = useState(task?.due_date ?? '');
@@ -19,6 +20,7 @@ export function TaskForm({ task, onSave, onClose }: TaskFormProps) {
   useEffect(() => {
     const element = dialog.current!;
     element.showModal();
+    titleInput.current?.focus();
     return () => element.close();
   }, []);
 
@@ -37,9 +39,9 @@ export function TaskForm({ task, onSave, onClose }: TaskFormProps) {
   return <dialog ref={dialog} className="task-dialog" aria-labelledby="task-form-title" onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
     <header className="dialog-header"><div><span className="eyebrow">YOUR WORKSPACE</span><h2 id="task-form-title">{task ? 'Edit task' : 'A new task'}</h2></div><button className="icon-button" aria-label="Close task form" disabled={busy} onClick={onClose}><X size={20} /></button></header>
     <form onSubmit={submit}>
-      <label>Title<input autoFocus required maxLength={200} placeholder="What needs to get done?" value={title} onChange={event => setTitle(event.target.value)} /></label>
+      <label>Title<input ref={titleInput} required maxLength={200} placeholder="What needs to get done?" value={title} onChange={event => setTitle(event.target.value)} /></label>
       <label>Description<textarea maxLength={4000} rows={4} placeholder="Add a little context…" value={description} onChange={event => setDescription(event.target.value)} /></label>
-      <div className="form-row"><label>Due date<input type="date" value={dueDate} onChange={event => setDueDate(event.target.value)} /></label>
+      <div className="form-row"><label>Due date<input type="date" value={dueDate} onInput={event => setDueDate(event.currentTarget.value)} onChange={event => setDueDate(event.target.value)} /></label>
         {task && <label>Status<select value={status} onChange={event => setStatus(event.target.value as TaskStatus)}><option value="pending">Pending</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select></label>}
       </div>
       {error && <p className="error" role="alert">{error}</p>}
