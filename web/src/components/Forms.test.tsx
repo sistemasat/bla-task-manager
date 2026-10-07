@@ -10,17 +10,17 @@ describe('Authentication form', () => {
     render(<AuthForm onSubmit={submit} />);
     await userEvent.type(screen.getByLabelText('Email'), 'alex@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'StrongPassword!');
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in', exact: true }));
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(submit).toHaveBeenCalledWith({ name: '', email: 'alex@example.com', password: 'StrongPassword!' }, false);
   });
   it('shows registration fields and server errors', async () => {
     const submit = vi.fn().mockRejectedValue(new Error('An account with this email already exists.'));
     render(<AuthForm onSubmit={submit} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Create account', exact: true }));
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     await userEvent.type(screen.getByLabelText('Name'), 'Alex');
     await userEvent.type(screen.getByLabelText('Email'), 'alex@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'StrongPassword!');
-    await userEvent.click(screen.getByRole('button', { name: 'Create account', exact: true }));
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('already exists');
   });
 });
