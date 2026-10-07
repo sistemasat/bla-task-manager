@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthForm } from './AuthForm';
@@ -26,6 +26,16 @@ describe('Authentication form', () => {
 });
 
 describe('Task form', () => {
+  it('preserves date input events before saving', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    render(<TaskForm onSave={save} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Title'), 'Task with a date');
+    const date = screen.getByLabelText('Due date') as HTMLInputElement;
+    date.value = '2026-10-09';
+    fireEvent.input(date);
+    await userEvent.click(screen.getByRole('button', { name: 'Create task' }));
+    expect(save).toHaveBeenCalledWith({ title: 'Task with a date', description: null, due_date: '2026-10-09' }, 'pending');
+  });
   it('rejects whitespace-only title before calling the API', async () => {
     const save = vi.fn();
     render(<TaskForm onSave={save} onClose={vi.fn()} />);
