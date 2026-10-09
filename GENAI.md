@@ -75,7 +75,11 @@ Domain/application tests cover text validation, timestamps, pagination and owner
 rejection. SQLite tests cover real persistence, duplicate email and foreign keys.
 HTTP tests cover anonymous access, expired/wrong-signature tokens, credential
 errors, validation and foreign-owner CRUD. Frontend tests cover form values,
-busy/error behavior, dates and request/error handling. Browser checks supplement
+busy/error behavior, dates and request/error handling. Connected App tests also
+exercise registration, login, CRUD, validation recovery and session expiry on
+401. Expired, wrong-signature, wrong-issuer and wrong-audience HTTP checks use
+existing users and verify a valid-token baseline before testing rejection.
+Browser checks supplement
 the automated suites; they are not a comprehensive end-to-end test suite.
 
 ## Review considerations

@@ -2,6 +2,9 @@
 
 ## Problem and scope
 
+As a user, I want to register, sign in and manage my own tasks with a title,
+description, status and due date so I can organize my work.
+
 A user needs a private list of tasks with title, description, status and due
 date. The first version provides registration, login and complete task CRUD.
 The assessment's user-management API is the authentication controller; the

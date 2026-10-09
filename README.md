@@ -83,7 +83,8 @@ npm run build
 
 Backend tests cover domain rules, use cases, real SQLite persistence, password
 hashing, token issuance and HTTP authentication/authorization. Frontend tests
-cover forms and the HTTP adapter. Manual browser checks supplement these tests.
+cover forms, the HTTP adapter and connected registration/login/CRUD/error flows.
+Manual browser checks supplement these tests.
 GitHub Actions runs the backend and frontend build/test commands on pushes and
 pull requests. Red TDD checkpoints in history intentionally contain failing tests;
 use the latest completed commit for evaluation.
@@ -150,3 +151,5 @@ development setup is the supported demonstration environment.
 [PRESENTATION.md](PRESENTATION.md) summarizes the thought process and demo route.
 [GENAI.md](GENAI.md) contains the required prompt, generated-code example and
 validation/correction record. The application does not call an LLM at runtime.
+[REQUIREMENTS.md](REQUIREMENTS.md) maps each assessment requirement to its
+implementation and verification evidence.
