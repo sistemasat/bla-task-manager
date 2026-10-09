@@ -88,16 +88,33 @@ public class HttpTests(ApiFactory factory) : IClassFixture<ApiFactory>
     public async Task Expired_or_wrong_signature_tokens_are_rejected(bool expired)
     {
         using var client = factory.CreateClient();
+        var userId = await SignIn(client);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/tasks")).StatusCode);
         var key = expired ? ApiFactory.SigningKey : "different-key-with-at-least-32-bytes";
         var end = expired ? DateTime.UtcNow.AddMinutes(-1) : DateTime.UtcNow.AddMinutes(30);
-        var token = new JwtSecurityToken("task-manager", "task-manager-web", [new Claim("sub", Guid.NewGuid().ToString())],
+        var token = new JwtSecurityToken("task-manager", "task-manager-web", [new Claim("sub", userId.ToString())],
             notBefore: DateTime.UtcNow.AddHours(-1), expires: end,
             signingCredentials: new(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256));
         client.DefaultRequestHeaders.Authorization = new("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/tasks")).StatusCode);
     }
 
-    private static async Task SignIn(HttpClient client)
+    [Theory]
+    [InlineData("another-issuer", "task-manager-web")]
+    [InlineData("task-manager", "another-audience")]
+    public async Task Wrong_issuer_or_audience_is_rejected_for_an_existing_user(string issuer, string audience)
+    {
+        using var client = factory.CreateClient();
+        var userId = await SignIn(client);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/tasks")).StatusCode);
+        var token = new JwtSecurityToken(issuer, audience, [new Claim("sub", userId.ToString())],
+            notBefore: DateTime.UtcNow.AddMinutes(-1), expires: DateTime.UtcNow.AddMinutes(30),
+            signingCredentials: new(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ApiFactory.SigningKey)), SecurityAlgorithms.HmacSha256));
+        client.DefaultRequestHeaders.Authorization = new("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/tasks")).StatusCode);
+    }
+
+    private static async Task<Guid> SignIn(HttpClient client)
     {
         var email = $"{Guid.NewGuid():N}@example.com";
         var register = await client.PostAsJsonAsync("/api/auth/register", new { name = "Alex", email, password = "StrongPassword!" });
@@ -107,5 +124,6 @@ public class HttpTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var session = await login.Content.ReadFromJsonAsync<JsonElement>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
             session.GetProperty("access_token").GetProperty("token").GetString());
+        return session.GetProperty("user").GetProperty("id").GetGuid();
     }
 }
