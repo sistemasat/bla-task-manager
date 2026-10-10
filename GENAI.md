@@ -76,8 +76,11 @@ rejection. SQLite tests cover real persistence, duplicate email and foreign keys
 HTTP tests cover anonymous access, expired/wrong-signature tokens, credential
 errors, validation and foreign-owner CRUD. Frontend tests cover form values,
 busy/error behavior, dates and request/error handling. Connected App tests also
-exercise registration, login, CRUD, validation recovery and session expiry on
-401. Expired, wrong-signature, wrong-issuer and wrong-audience HTTP checks use
+exercise registration, login, CRUD, validation recovery, pagination beyond 50
+tasks and session expiry both on 401 and at the token's deadline. HTTP checks
+reject missing, null, unknown and numeric update statuses without changing the
+stored task, and verify a 53-task list across page boundaries.
+Expired, wrong-signature, wrong-issuer and wrong-audience HTTP checks use
 existing users and verify a valid-token baseline before testing rejection.
 Browser checks supplement
 the automated suites; they are not a comprehensive end-to-end test suite.

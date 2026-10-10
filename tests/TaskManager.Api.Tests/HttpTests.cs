@@ -82,6 +82,61 @@ public class HttpTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/api/auth/login", new { email, password = "WrongPassword!" })).StatusCode);
     }
 
+    [Fact]
+    public async Task Missing_null_unknown_or_numeric_status_returns_400_without_changing_task()
+    {
+        using var client = factory.CreateClient();
+        await SignIn(client);
+        var response = await client.PostAsJsonAsync("/api/tasks", new { title = "Original", due_date = "2026-10-09" });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var id = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetString();
+        string[] invalidBodies =
+        [
+            """{"title":"Changed"}""",
+            """{"title":"Changed","status":null}""",
+            """{"title":"Changed","status":"unknown"}""",
+            """{"title":"Changed","status":1}"""
+        ];
+        foreach (var body in invalidBodies)
+        {
+            using var content = new StringContent(body, Encoding.UTF8, "application/json");
+            using var rejected = await client.PutAsync($"/api/tasks/{id}", content);
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+            Assert.Equal("application/problem+json", rejected.Content.Headers.ContentType?.MediaType);
+            Assert.NotEmpty((await rejected.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors").EnumerateObject());
+            var unchanged = await client.GetFromJsonAsync<JsonElement>($"/api/tasks/{id}");
+            Assert.Equal("Original", unchanged.GetProperty("title").GetString());
+            Assert.Equal("pending", unchanged.GetProperty("status").GetString());
+            Assert.Equal("2026-10-09", unchanged.GetProperty("due_date").GetString());
+        }
+        using var valid = await client.PutAsJsonAsync($"/api/tasks/{id}", new { title = "Original", status = "in_progress", due_date = "2026-10-09" });
+        Assert.Equal(HttpStatusCode.OK, valid.StatusCode);
+        Assert.Equal("in_progress", (await valid.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Pagination_returns_all_fifty_three_tasks_without_gaps_or_duplicate_visible_rows()
+    {
+        using var client = factory.CreateClient();
+        await SignIn(client);
+        for (var index = 0; index < 53; index++)
+        {
+            using var created = await client.PostAsJsonAsync("/api/tasks", new { title = $"Task {index + 1}" });
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        }
+        var all = await client.GetFromJsonAsync<JsonElement[]>("/api/tasks?skip=0&take=100") ?? [];
+        var first = await client.GetFromJsonAsync<JsonElement[]>("/api/tasks?skip=0&take=51") ?? [];
+        var second = await client.GetFromJsonAsync<JsonElement[]>("/api/tasks?skip=50&take=51") ?? [];
+        Assert.Equal(53, all.Length);
+        Assert.Equal(51, first.Length);
+        Assert.Equal(3, second.Length);
+        Assert.Equal(first[50].GetProperty("id").GetGuid(), second[0].GetProperty("id").GetGuid());
+        var visibleIds = first.Take(50).Concat(second).Select(row => row.GetProperty("id").GetGuid()).ToArray();
+        Assert.Equal(all.Select(row => row.GetProperty("id").GetGuid()), visibleIds);
+        Assert.Equal(53, visibleIds.Distinct().Count());
+        Assert.Empty(await client.GetFromJsonAsync<JsonElement[]>("/api/tasks?skip=100&take=51") ?? []);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
