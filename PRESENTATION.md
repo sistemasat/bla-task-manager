@@ -22,6 +22,10 @@ adapter. This inversion lets use cases be tested without a database. Domain
 and Application do not import Infrastructure. Concrete infrastructure is wired
 in the composition root. No ORM, generic repository or mediator is used.
 
+TaskItem's private constructor and getter-only properties keep state changes
+inside validated factories/methods. Restore is explicit for persistence and
+preserves stored identity/timestamps; it validates the same task invariants.
+
 ## Development decisions
 
 1. Define the user story and ownership requirements before implementation.
@@ -45,6 +49,8 @@ in the composition root. No ORM, generic repository or mediator is used.
 - Explain the HTTP test that prevents a second user from reading, updating,
   deleting or listing another user's tasks.
 - Show one domain test, one application test and one SQLite/HTTP test.
+- Run `npm run test:e2e` from `web` to demonstrate real desktop/mobile browser
+  flows with isolated data. Install Chromium first as described in README.
 - Explain one real correction from GENAI.md and one version-one tradeoff.
 
 ## Limits and next steps

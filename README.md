@@ -144,6 +144,28 @@ GitHub Actions runs the backend and frontend build/test commands on pushes and
 pull requests. Red TDD checkpoints in history intentionally contain failing tests;
 use the latest completed commit for evaluation.
 
+### Browser tests
+
+After the locked .NET restore and `npm ci`, run these commands from `web`:
+
+```powershell
+npx playwright install --no-shell chromium
+npm run test:e2e
+```
+
+Playwright starts its own API on port 5455 and frontend on port 5378, using a
+fresh temporary SQLite database and unique test accounts. Existing servers on
+those ports cause the run to stop rather than reuse an unknown environment.
+The local demo on ports 5255/5178 and its data are independent of this run.
+The temporary test database is removed after the run.
+
+Two scenarios run on desktop and mobile Chromium: registration and task CRUD
+with a persisted date and delete confirmation; login after browser reload and
+private lists for separate users. The suite makes real HTTP requests through
+the React client and API, without mocking responses. Screenshots and traces
+are retained on failure in `web/test-results`. GitHub Actions runs a separate
+browser job. This small suite does not claim exhaustive cross-browser coverage.
+
 ## API contract
 
 | Endpoint | Access | Success |
@@ -177,6 +199,13 @@ parameterized SQL. Controllers translate HTTP input/output and call use cases.
 `Program.cs` wires concrete implementations through dependency injection. The
 domain has no database or web dependencies. `TimeProvider` makes use-case and
 token timestamps controllable in tests.
+
+`TaskItem` has a private constructor and getter-only properties. `Create` sets
+new identity/status/timestamps, `Update` returns a validated immutable value
+while preserving identity/ownership/creation time, and `Restore` reconstructs
+validated persisted state. The SQLite adapter uses `Restore`; constructor calls
+and external property assignments cannot bypass task validation. Authorization
+still belongs to the authenticated use case and owner-scoped repository calls.
 
 Task ownership comes from the verified JWT subject, never the request body.
 SQL reads, updates and deletes include the owner ID. Passwords use the standard

@@ -82,8 +82,16 @@ reject missing, null, unknown and numeric update statuses without changing the
 stored task, and verify a 53-task list across page boundaries.
 Expired, wrong-signature, wrong-issuer and wrong-audience HTTP checks use
 existing users and verify a valid-token baseline before testing rejection.
-Browser checks supplement
-the automated suites; they are not a comprehensive end-to-end test suite.
+Task restoration tests reject invalid persisted identity, ownership, text and
+status; the encapsulation contract test checks that public members cannot
+construct or overwrite task state. The restoration/encapsulation change has
+a genuine failing-then-passing test cycle.
+
+Playwright browser tests additionally exercise registration, task CRUD with a
+persisted date, delete confirmation, login after reload and separate users'
+lists against the real running stack on desktop/mobile Chromium. No API
+responses are mocked in those tests. These were added to verify existing UI
+behavior, not retroactively claimed as a new test-first feature cycle.
 
 ## Review considerations
 

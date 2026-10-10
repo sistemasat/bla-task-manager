@@ -16,8 +16,8 @@ adapters; they complement the domain/application unit tests.
 | Independent data access | Parameterized SQLite adapters in Infrastructure | Real database tests, constraints and round trips |
 | No EF, Dapper or Mediator | Explicit SQL using Microsoft.Data.Sqlite | Tracked package lockfiles |
 | TDD and automated application tests | Real red/green checkpoints; unit and integration suites | Git history and CI |
-| Integrated frontend framework | React with typed fetch adapter | Form/adapter tests and App screen-flow tests |
-| Responsive, usable CRUD UI | Native dialogs, loading/error states and pagination | README screenshots; App CRUD and 53-task pagination tests |
+| Integrated frontend framework | React with typed fetch adapter | Form/adapter/App tests and real browser scenarios |
+| Responsive, usable CRUD UI | Native dialogs, loading/error states and pagination | Screenshots; desktop/mobile Playwright CRUD; App 53-task pagination |
 | Setup documentation | README with prerequisites, commands and configuration | Locked restore and CI clean checkout |
 | Demo data and credentials | Development-only DemoSeeder | Local demo login and persistent task list |
 | GenAI prompt/output/validation | GENAI with representative output and real corrections | Referenced tests and commits |
@@ -33,3 +33,5 @@ The test suites do not claim complete code coverage or exhaustive browser E2E.
 The frontend App tests connect real components to a mocked HTTP adapter; the
 separate adapter tests validate HTTP handling, and the backend HTTP tests run
 the actual authentication middleware and SQLite persistence.
+Playwright additionally runs two scenarios against the real frontend/API/SQLite
+on desktop and mobile Chromium, using dedicated ports and a temporary database.
