@@ -4,6 +4,10 @@ public sealed record TaskItem(
     Guid Id, Guid UserId, string Title, string? Description, TaskItemStatus Status,
     DateOnly? DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt)
 {
+    public static TaskItem Restore(Guid id, Guid userId, string title, string? description,
+        TaskItemStatus status, DateOnly? dueDate, DateTimeOffset createdAt, DateTimeOffset updatedAt) =>
+        throw new NotImplementedException();
+
     public static TaskItem Create(Guid userId, string title, string? description,
         DateOnly? dueDate, DateTimeOffset now)
     {
