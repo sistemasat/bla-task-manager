@@ -1,35 +1,47 @@
 namespace TaskManager.Domain;
 
-public sealed record TaskItem(
-    Guid Id, Guid UserId, string Title, string? Description, TaskItemStatus Status,
-    DateOnly? DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt)
+public sealed record TaskItem
 {
+    public Guid Id { get; }
+    public Guid UserId { get; }
+    public string Title { get; }
+    public string? Description { get; }
+    public TaskItemStatus Status { get; }
+    public DateOnly? DueDate { get; }
+    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset UpdatedAt { get; }
+
+    private TaskItem(Guid id, Guid userId, string title, string? description,
+        TaskItemStatus status, DateOnly? dueDate, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+    {
+        if (id == Guid.Empty)
+            throw new ValidationException("id", "A task must have an identity.");
+        if (userId == Guid.Empty)
+            throw new ValidationException("user_id", "A task must have an owner.");
+        if (!Enum.IsDefined(status))
+            throw new ValidationException("status", "Choose a valid task status.");
+        var (cleanTitle, cleanDescription) = ValidateText(title, description);
+        Id = id;
+        UserId = userId;
+        Title = cleanTitle;
+        Description = cleanDescription;
+        Status = status;
+        DueDate = dueDate;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
+    }
+
     public static TaskItem Restore(Guid id, Guid userId, string title, string? description,
         TaskItemStatus status, DateOnly? dueDate, DateTimeOffset createdAt, DateTimeOffset updatedAt) =>
-        throw new NotImplementedException();
+        new(id, userId, title, description, status, dueDate, createdAt, updatedAt);
 
     public static TaskItem Create(Guid userId, string title, string? description,
         DateOnly? dueDate, DateTimeOffset now)
-    {
-        if (userId == Guid.Empty)
-            throw new ValidationException("user_id", "A task must have an owner.");
-        var (cleanTitle, cleanDescription) = ValidateText(title, description);
-        return new(Guid.NewGuid(), userId, cleanTitle, cleanDescription,
-            TaskItemStatus.Pending, dueDate, now, now);
-    }
+        => new(Guid.NewGuid(), userId, title, description, TaskItemStatus.Pending, dueDate, now, now);
 
     public TaskItem Update(string title, string? description, TaskItemStatus status,
         DateOnly? dueDate, DateTimeOffset now)
-    {
-        var (cleanTitle, cleanDescription) = ValidateText(title, description);
-        if (!Enum.IsDefined(status))
-            throw new ValidationException("status", "Choose a valid task status.");
-        return this with
-        {
-            Title = cleanTitle, Description = cleanDescription,
-            Status = status, DueDate = dueDate, UpdatedAt = now
-        };
-    }
+        => new(Id, UserId, title, description, status, dueDate, CreatedAt, now);
 
     private static (string Title, string? Description) ValidateText(string title, string? description)
     {

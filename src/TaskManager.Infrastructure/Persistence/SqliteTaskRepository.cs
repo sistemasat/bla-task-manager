@@ -78,7 +78,7 @@ public sealed class SqliteTaskRepository(SqliteDatabase database) : ITaskReposit
         command.Parameters.AddWithValue("$updated", task.UpdatedAt.ToString("O", CultureInfo.InvariantCulture));
     }
 
-    private static TaskItem Read(SqliteDataReader reader) => new(
+    private static TaskItem Read(SqliteDataReader reader) => TaskItem.Restore(
         Guid.Parse(reader.GetString(0)), Guid.Parse(reader.GetString(1)), reader.GetString(2),
         reader.IsDBNull(3) ? null : reader.GetString(3), (TaskItemStatus)reader.GetInt32(4),
         reader.IsDBNull(5) ? null : DateOnly.ParseExact(reader.GetString(5), "yyyy-MM-dd", CultureInfo.InvariantCulture),

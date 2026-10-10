@@ -52,7 +52,9 @@ public sealed class PersistenceTests : IAsyncLifetime
         var stranger = Guid.NewGuid();
         Assert.Null(await _tasks.FindAsync(task.Id, stranger, default));
         Assert.Empty(await _tasks.ListAsync(stranger, 0, 100, default));
-        Assert.False(await _tasks.UpdateAsync(task with { UserId = stranger, Title = "Changed" }, default));
+        var foreignTask = TaskItem.Restore(task.Id, stranger, "Changed", task.Description,
+            task.Status, task.DueDate, task.CreatedAt, task.UpdatedAt);
+        Assert.False(await _tasks.UpdateAsync(foreignTask, default));
         Assert.False(await _tasks.DeleteAsync(task.Id, stranger, default));
         Assert.Equal(task, await _tasks.FindAsync(task.Id, _owner.Id, default));
     }
