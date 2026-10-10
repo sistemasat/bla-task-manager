@@ -2,6 +2,15 @@
 
 A small task management application built with ASP.NET Core, React and SQLite.
 
+## Preview
+
+Desktop and mobile views of the local demo account after exercising task CRUD.
+The screenshots include an additional task created during that walkthrough.
+
+![Desktop task list](docs/images/desktop.png)
+
+<img src="docs/images/mobile.png" alt="Mobile task list" width="320">
+
 ## User story
 
 As a user, I want to register, sign in and manage my own tasks with a title,
@@ -26,6 +35,49 @@ description, status and due date so I can organize my work.
 - `tests`: domain, application, persistence and HTTP tests.
 
 Dependencies point inward. Entity Framework, Dapper and Mediator are not used.
+
+## Architecture
+
+### Source dependencies
+
+Each arrow represents a direct backend project reference. Domain has no project
+references. Application defines the ports that Infrastructure implements; it
+does not reference Infrastructure. API is the composition root and selects the
+concrete adapters in `Program.cs`.
+
+```mermaid
+flowchart LR
+  Api[API] --> Application[Application]
+  Api --> Infrastructure[Infrastructure]
+  Infrastructure --> Application
+  Application --> Domain[Domain]
+```
+
+### Runtime request flow
+
+This example follows creation of an authenticated user's task. TaskService calls
+the Application-owned `ITaskRepository` port; dependency injection provides its
+SQLite implementation. Runtime calls to an adapter do not introduce an
+Application project reference to Infrastructure.
+
+```mermaid
+sequenceDiagram
+  participant Web as React client
+  participant Api as ASP.NET API
+  participant App as TaskService
+  participant Repo as SqliteTaskRepository
+  participant DB as SQLite
+  Web->>Api: POST /api/tasks with Bearer token
+  Api->>Api: Validate JWT and resolve current user
+  Api->>App: CreateAsync(userId, input)
+  App->>App: Create and validate domain task
+  App->>Repo: AddAsync(task) through ITaskRepository
+  Repo->>DB: Parameterized INSERT
+  DB-->>Repo: Row stored
+  Repo-->>App: Completed
+  App-->>Api: Created task
+  Api-->>Web: 201 Created, JSON and Location
+```
 
 ## Development approach
 
@@ -83,7 +135,10 @@ npm run build
 
 Backend tests cover domain rules, use cases, real SQLite persistence, password
 hashing, token issuance and HTTP authentication/authorization. Frontend tests
-cover forms, the HTTP adapter and connected registration/login/CRUD/error flows.
+cover forms, the HTTP adapter and connected registration/login/CRUD/error flows,
+including pagination beyond 50 tasks and automatic session expiry. HTTP tests
+also verify that missing, null, unknown or numeric update statuses return 400
+without changing stored data, and that pagination preserves all 53 test tasks.
 Manual browser checks supplement these tests.
 GitHub Actions runs the backend and frontend build/test commands on pushes and
 pull requests. Red TDD checkpoints in history intentionally contain failing tests;

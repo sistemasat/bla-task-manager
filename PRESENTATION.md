@@ -13,18 +13,10 @@ The client is responsive React. SQLite keeps setup small and reproducible.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Web[React client] -->|HTTP JSON| Api[API controllers]
-  Api --> App[Application use cases and ports]
-  App --> Domain[Domain entities and rules]
-  Infra[Infrastructure adapters] --> App
-  Infra --> Sqlite[(SQLite)]
-  Root[Program composition root] --> Api
-  Root --> Infra
-```
+The README contains separate [source-dependency and runtime diagrams](README.md#architecture).
+The first shows direct project references; the second follows an authenticated
+create request from React to SQLite and back to the HTTP response.
 
-The arrows into Application describe source dependencies. At runtime,
 TaskService calls ITaskRepository and dependency injection supplies the SQLite
 adapter. This inversion lets use cases be tested without a database. Domain
 and Application do not import Infrastructure. Concrete infrastructure is wired

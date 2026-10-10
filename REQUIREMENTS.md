@@ -17,7 +17,7 @@ adapters; they complement the domain/application unit tests.
 | No EF, Dapper or Mediator | Explicit SQL using Microsoft.Data.Sqlite | Tracked package lockfiles |
 | TDD and automated application tests | Real red/green checkpoints; unit and integration suites | Git history and CI |
 | Integrated frontend framework | React with typed fetch adapter | Form/adapter tests and App screen-flow tests |
-| Responsive, usable CRUD UI | Native dialogs, loading/error states and pagination | Desktop/mobile browser checks; App CRUD test |
+| Responsive, usable CRUD UI | Native dialogs, loading/error states and pagination | README screenshots; App CRUD and 53-task pagination tests |
 | Setup documentation | README with prerequisites, commands and configuration | Locked restore and CI clean checkout |
 | Demo data and credentials | Development-only DemoSeeder | Local demo login and persistent task list |
 | GenAI prompt/output/validation | GENAI with representative output and real corrections | Referenced tests and commits |
